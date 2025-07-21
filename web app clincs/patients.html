@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Patients</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="container">
+    <div class="sidebar">
+      <a href="index.html" class="menu-link">Dashboard</a>
+      <a href="patients.html" class="menu-link active">Patients</a>
+      <a href="labos.html" class="menu-link">Lab Work</a>
+      <a href="reception.html" class="menu-link">Reception</a>
+      <a href="expenses.html" class="menu-link">Expense</a>
+      <a href="medical.html" class="menu-link">Medical Supplies</a>
+      <a href="appointments.html" class="menu-link">Appointments</a>
+      <a href="chatbot.html" class="menu-link">AI Chatbot</a>
+
+
+
+    </div>
+    <div class="content">
+      <h1>Patients</h1>
+      <form id="patientForm">
+        <input type="text" id="patientName" placeholder="Name" required>
+        <input type="text" id="patientPhone" placeholder="Phone" required>
+        <select id="patientWork" required>
+          <option disabled selected>Type of Work</option>
+          <option>Céramique</option><option>zirconia</option><option>Resine</option>
+          <option>tcs</option><option>Les facettes</option><option>composete</option>
+          <option>les bagues</option><option>Extraction</option><option>Blanchisment</option>
+          <option>Nettoiage</option><option>Snap On Smile</option><option>Provisoire</option>
+        </select>
+        <input type="text" id="patientNote" placeholder="Note" />
+        <input type="date" id="firstVisit" placeholder="First Visit" required />
+        <input type="date" id="nextVisit" placeholder="Next Payment" />
+        <select id="patientStatus" required>
+          <option disabled selected>Status</option>
+          <option>Still Working</option>
+          <option>Finished</option>
+          <option>In Labo</option>
+        </select>
+        <input type="number" id="patientPrice" placeholder="Price" required />
+        <input type="number" id="patientAdvance" placeholder="Advance" required />
+        <input type="date" id="patientDate" required />
+        <button type="submit">Add Patient</button>
+      </form>
+      <table id="patientTable">
+        <thead><tr><th>Name</th><th>Phone</th><th>Work</th><th>Status</th><th>Note</th><th>First Visit</th><th>Next Pay</th><th>Price</th><th>Advance</th><th>Remaining</th><th>Date</th><th>Actions</th> </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+  <!-- History Modal -->
+<div
+id="historyModal"
+class="modal"
+style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+"
+>
+<div
+  class="modal-content"
+  style="
+    background: #fff;
+    max-width: 500px;
+    margin: 100px auto;
+    padding: 20px;
+    border-radius: 8px;
+    position: relative;
+  "
+>
+  <h2>Patient History</h2>
+  <div
+    id="historyContent"
+    style="
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 10px;
+    "
+  ></div>
+  <button id="closeModalBtn" style="margin-top: 10px;">Close</button>
+</div>
+</div>
+<div id="editModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span onclick="closeModal()" style="float:right; cursor:pointer;">&times;</span>
+    <h2>Edit Patient</h2>
+    <input type="text" id="editName" placeholder="Name" required>
+    <input type="text" id="editPhone" placeholder="Phone" required>
+    <select id="editStatus">
+      <option value="Still Working">Still Working</option>
+      <option value="Finished">Finished</option>
+      <option value="In Labo">In Labo</option>
+    </select>
+    <input type="number" id="editAdvance" placeholder="Add Advance (MAD)">
+    <button onclick="saveEdit()">Save</button>
+
+    <h3>Advance History</h3>
+    <ul id="historyList"></ul>
+  </div>
+</div>
+
+
+
+</div>
+
+  <script src="assets/js/common.js"></script>
+  <script src="assets/js/patients.js"></script>
+  <script>
+    if (localStorage.getItem("loggedIn") !== "true") {
+      window.location.href = "login.html";
+    }
+  </script>
+  
+  
+</body>
+</html>
