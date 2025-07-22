@@ -1,15 +1,23 @@
+// auth.js
+
 document.getElementById("loginForm").addEventListener("submit", function (e) {
   e.preventDefault();
 
   const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value.trim();
+  const password = document.getElementById("password").value;
   const errorMsg = document.getElementById("errorMsg");
 
-  // For now: hardcoded credentials (replace with backend call later)
-  if (username === "admin" && password === "1234") {
-    localStorage.setItem("loggedIn", "true");
-    window.location.href = "index.html"; // redirect to your dashboard
-  } else {
-    errorMsg.textContent = "Invalid username or password.";
-  }
+  // Convert username to email
+  const email = `${username}@gmail.com`; // assuming you created user like 'admin@clinic.com' in Firebase
+
+  firebase.auth().signInWithEmailAndPassword(email, password)
+    .then((userCredential) => {
+      // Success
+      localStorage.setItem("loggedIn", "true");
+      localStorage.setItem("userEmail", email);
+      window.location.href = "index.html";
+    })
+    .catch((error) => {
+      errorMsg.textContent = "⚠️ " + error.message;
+    });
 });

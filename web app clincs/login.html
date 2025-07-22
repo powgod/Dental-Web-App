@@ -17,12 +17,15 @@
     </form>
   </div>
 
-  <script src="assets/js/auth.js"></script>
-  <script>
-    if (localStorage.getItem("loggedIn") !== "true") {
-      window.location.href = "login.html";
-    }
-  </script>
-  
+ <!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+
+<!-- Your Firebase config -->
+<script src="assets/js/firebase.js"></script>
+
+<!-- Now your login logic -->
+<script src="assets/js/auth.js"></script>
+
 </body>
 </html>

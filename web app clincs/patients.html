@@ -115,6 +115,13 @@ style="
 
   <script src="assets/js/common.js"></script>
   <script src="assets/js/patients.js"></script>
+  <!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js"></script>
+
+<!-- Your firebase config -->
+<script src="firebase.js"></script>
+
   <script>
     if (localStorage.getItem("loggedIn") !== "true") {
       window.location.href = "login.html";

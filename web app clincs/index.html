@@ -31,11 +31,21 @@
   </div>
   <script src="assets/js/common.js"></script>
   <script src="assets/js/dashboard.js"></script>
-  <script>
-    if (localStorage.getItem("loggedIn") !== "true") {
+  <!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js"></script>
+
+<!-- Your firebase config -->
+<script src="firebase.js"></script>
+
+<script>
+  firebase.auth().onAuthStateChanged((user) => {
+    if (!user || localStorage.getItem("loggedIn") !== "true") {
       window.location.href = "login.html";
     }
-  </script>
+  });
+</script>
+
   
 </body>
 </html>
