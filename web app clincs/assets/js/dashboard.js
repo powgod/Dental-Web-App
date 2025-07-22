@@ -1,10 +1,17 @@
-function updateDashboard() {
-  const patients = loadFromStorage("patients") || [];
-  const reception = loadFromStorage("waitingList") || [];
+const db = firebase.database();
+
+const patientsRef = db.ref("patients");
+const receptionRef = db.ref("waitingList");
+const expensesRef = db.ref("fixedExpenses");
+const suppliesRef = db.ref("medicalSupplies");
+const labosRef = db.ref("labos");
+
+function updateDashboard(patientsData, receptionData) {
+  const patients = patientsData ? Object.values(patientsData) : [];
+  const reception = receptionData ? Object.values(receptionData) : [];
 
   const totalPatients = patients.length;
   const waitingPatients = reception.length;
-  const paidPatients = patients.filter(p => p.status === "Paid").length;
 
   const dashboard = document.getElementById("dashboard");
   dashboard.innerHTML = `
@@ -16,18 +23,17 @@ function updateDashboard() {
       <h3>Reception</h3>
       <p>${waitingPatients}</p>
     </div>
-    `;
-    
+  `;
 }
-function updateTotalAdvance() {
-  const patients = JSON.parse(localStorage.getItem("patients") || "[]");
+
+function updateTotalAdvance(patientsData) {
+  const patients = patientsData ? Object.values(patientsData) : [];
   const totalAdvance = patients.reduce((sum, p) => sum + (Number(p.advance) || 0), 0);
 
-  const advanceElement = document.getElementById("totalAdvance");
+  let advanceElement = document.getElementById("totalAdvance");
   if (advanceElement) {
     advanceElement.textContent = `${totalAdvance.toFixed(2)} MAD`;
   } else {
-    // If the card doesn't exist in HTML, dynamically add it
     const card = document.createElement("div");
     card.className = "metric-card";
     card.innerHTML = `
@@ -37,16 +43,15 @@ function updateTotalAdvance() {
     document.getElementById("dashboard").appendChild(card);
   }
 }
-function updateTotalPrice() {
-  const patients = JSON.parse(localStorage.getItem("patients") || "[]");
+
+function updateTotalPrice(patientsData) {
+  const patients = patientsData ? Object.values(patientsData) : [];
   const totalPrice = patients.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
 
-  const priceElement = document.getElementById("totalPrice");
+  let priceElement = document.getElementById("totalPrice");
   if (priceElement) {
-    // Update existing card content
     priceElement.textContent = `${totalPrice.toFixed(2)} MAD`;
   } else {
-    // Create and add card dynamically if it doesn't exist
     const card = document.createElement("div");
     card.className = "metric-card";
     card.innerHTML = `
@@ -56,11 +61,13 @@ function updateTotalPrice() {
     document.getElementById("dashboard").appendChild(card);
   }
 }
-function updateMonthlyExpense() {
-  const expenses = JSON.parse(localStorage.getItem("fixedExpenses") || "[]");
+
+// Similarly for other dashboard items...
+function updateMonthlyExpense(expensesData) {
+  const expenses = expensesData ? Object.values(expensesData) : [];
   const totalExpense = expenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
 
-  const expenseElement = document.getElementById("monthlyExpense");
+  let expenseElement = document.getElementById("monthlyExpense");
   if (expenseElement) {
     expenseElement.textContent = `${totalExpense.toFixed(2)} MAD`;
   } else {
@@ -73,11 +80,12 @@ function updateMonthlyExpense() {
     document.getElementById("dashboard").appendChild(card);
   }
 }
-function updateMedicalInventoryCost() {
-  const supplies = JSON.parse(localStorage.getItem("medicalSupplies") || "[]");
+
+function updateMedicalInventoryCost(suppliesData) {
+  const supplies = suppliesData ? Object.values(suppliesData) : [];
   const totalCost = supplies.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
 
-  const element = document.getElementById("medicalInventoryCost");
+  let element = document.getElementById("medicalInventoryCost");
   if (element) {
     element.textContent = `${totalCost.toFixed(2)} MAD`;
   } else {
@@ -90,11 +98,12 @@ function updateMedicalInventoryCost() {
     document.getElementById("dashboard").appendChild(card);
   }
 }
-function updateMonthlyLaboExpense() {
-  const labos = JSON.parse(localStorage.getItem("labos") || "[]");
+
+function updateMonthlyLaboExpense(labosData) {
+  const labos = labosData ? Object.values(labosData) : [];
   const total = labos.reduce((sum, l) => sum + (Number(l.price) || 0), 0);
 
-  const laboElement = document.getElementById("monthlyLaboExpense");
+  let laboElement = document.getElementById("monthlyLaboExpense");
   if (laboElement) {
     laboElement.textContent = `${total.toFixed(2)} MAD`;
   } else {
@@ -107,11 +116,12 @@ function updateMonthlyLaboExpense() {
     document.getElementById("dashboard").appendChild(card);
   }
 }
-function updateLaboWorkLeft() {
-  const labos = JSON.parse(localStorage.getItem("labos") || "[]");
+
+function updateLaboWorkLeft(labosData) {
+  const labos = labosData ? Object.values(labosData) : [];
   const pendingLabos = labos.filter(l => l.status.toLowerCase() !== "completed").length;
 
-  const laboWorkElement = document.getElementById("laboWorkLeft");
+  let laboWorkElement = document.getElementById("laboWorkLeft");
   if (laboWorkElement) {
     laboWorkElement.textContent = `${pendingLabos} labos`;
   } else {
@@ -125,11 +135,11 @@ function updateLaboWorkLeft() {
   }
 }
 
-function updateFinancialSummary() {
-  const patients = JSON.parse(localStorage.getItem("patients") || "[]");
-  const supplies = JSON.parse(localStorage.getItem("medicalSupplies") || "[]");
-  const expenses = JSON.parse(localStorage.getItem("fixedExpenses") || "[]");
-  const labos = JSON.parse(localStorage.getItem("labos") || "[]");
+function updateFinancialSummary(patientsData, suppliesData, expensesData, labosData) {
+  const patients = patientsData ? Object.values(patientsData) : [];
+  const supplies = suppliesData ? Object.values(suppliesData) : [];
+  const expenses = expensesData ? Object.values(expensesData) : [];
+  const labos = labosData ? Object.values(labosData) : [];
 
   const totalPrice = patients.reduce((sum, p) => sum + (Number(p.price) || 0), 0);
   const totalAdvance = patients.reduce((sum, p) => sum + (Number(p.advance) || 0), 0);
@@ -138,10 +148,9 @@ function updateFinancialSummary() {
   const totalLaboExpense = labos.reduce((sum, l) => sum + (Number(l.price) || 0), 0);
 
   const netProfit = totalPrice - totalMedicalCost - totalMonthlyExpense - totalLaboExpense;
-  const caseAmount = totalAdvance - totalMedicalCost - totalMonthlyExpense - totalLaboExpense;
+  const cashInHand = totalAdvance - totalMedicalCost - totalMonthlyExpense - totalLaboExpense;
 
-  // Net Profit Card
-  const netProfitElement = document.getElementById("netProfit");
+  let netProfitElement = document.getElementById("netProfit");
   if (netProfitElement) {
     netProfitElement.textContent = `${netProfit.toFixed(2)} MAD`;
   } else {
@@ -154,28 +163,42 @@ function updateFinancialSummary() {
     document.getElementById("dashboard").appendChild(card);
   }
 
-  // Case Card
-  const caseElement = document.getElementById("caseAmount");
-  if (caseElement) {
-    caseElement.textContent = `${caseAmount.toFixed(2)} MAD`;
+  let cashElement = document.getElementById("caseAmount");
+  if (cashElement) {
+    cashElement.textContent = `${cashInHand.toFixed(2)} MAD`;
   } else {
     const card = document.createElement("div");
     card.className = "metric-card";
     card.innerHTML = `
       <h3>Cash In Hand</h3>
-      <p id="caseAmount">${caseAmount.toFixed(2)} MAD</p>
+      <p id="caseAmount">${cashInHand.toFixed(2)} MAD</p>
     `;
     document.getElementById("dashboard").appendChild(card);
   }
 }
 
-updateDashboard();
-updateTotalAdvance();
-updateTotalPrice(); 
-updateMonthlyExpense();
-updateMedicalInventoryCost();
-updateMonthlyLaboExpense();
-updateLaboWorkLeft();  // ← Add this here
-updateFinancialSummary();
-renderdashboard();
-
+// Setup realtime listeners for all relevant data nodes
+patientsRef.on("value", patientsSnap => {
+  const patientsData = patientsSnap.val();
+  receptionRef.once("value", receptionSnap => {
+    const receptionData = receptionSnap.val();
+    updateDashboard(patientsData, receptionData);
+    updateTotalAdvance(patientsData);
+    updateTotalPrice(patientsData);
+    // you can call other patient-related update functions here if needed
+  });
+  expensesRef.once("value", expensesSnap => {
+    const expensesData = expensesSnap.val();
+    updateMonthlyExpense(expensesData);
+  });
+  suppliesRef.once("value", suppliesSnap => {
+    const suppliesData = suppliesSnap.val();
+    updateMedicalInventoryCost(suppliesData);
+  });
+  labosRef.once("value", labosSnap => {
+    const labosData = labosSnap.val();
+    updateMonthlyLaboExpense(labosData);
+    updateLaboWorkLeft(labosData);
+    updateFinancialSummary(patientsData, suppliesData, expensesData, labosData);
+  });
+});

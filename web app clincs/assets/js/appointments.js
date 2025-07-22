@@ -1,27 +1,46 @@
+// appointments.js
+
+const db = firebase.database();
+const appointmentsRef = db.ref("appointments");
+const patientsRef = db.ref("patients"); // optional, if you want to fetch live patients
+
 const patientNameInput = document.getElementById("patientName");
 const appointmentForm = document.getElementById("appointmentForm");
 const appointmentsTableBody = document.querySelector("#appointmentsTable tbody");
 const viewDateInput = document.getElementById("viewDate");
 
+let appointments = {};
+let patients = {}; // Will hold patients if fetched from Firebase
+let editingIndex = null; // will be the Firebase key of the appointment being edited
 
-let patients = JSON.parse(localStorage.getItem("patients") || "[]");
-let appointments = JSON.parse(localStorage.getItem("appointments") || "[]");
+// Optionally, fetch patients from Firebase to keep patient list updated
+// Or you can keep your localStorage fallback here as well
+patientsRef.on("value", (snapshot) => {
+  patients = snapshot.val() || {};
+  // If you have a dropdown for patients, you can populate it here
+  // populatePatientDropdown();
+});
 
-function populatePatientDropdown() {
-  patientSelect.innerHTML = `<option value="">Select Patient</option>`;
-  patients.forEach((p, i) => {
-    patientSelect.innerHTML += `<option value="${p.phone}">${p.name}</option>`;
-  });
-}
-
-function saveAppointments() {
-  localStorage.setItem("appointments", JSON.stringify(appointments));
+// Save appointment: create or update based on editingIndex
+function saveAppointmentData(appointmentData) {
+  if (editingIndex !== null) {
+    // update
+    return appointmentsRef.child(editingIndex).set(appointmentData);
+  } else {
+    // add new
+    return appointmentsRef.push(appointmentData);
+  }
 }
 
 function renderAppointments(filterDate = null) {
-  let filtered = appointments;
+  appointmentsTableBody.innerHTML = "";
+
+  // Convert appointments object to array for filtering and sorting
+  const appsArray = Object.entries(appointments).map(([key, val]) => ({ key, ...val }));
+
+  let filtered = appsArray;
   if (filterDate) {
-    filtered = appointments.filter(app => app.date === filterDate);
+    filtered = appsArray.filter(app => app.date === filterDate);
   }
 
   if (filtered.length === 0) {
@@ -29,55 +48,48 @@ function renderAppointments(filterDate = null) {
     return;
   }
 
-  appointmentsTableBody.innerHTML = filtered.map((app, i) => `
-    <tr>
-      <td>${app.patientName}</td>
-      <td>${app.date}</td>
-      <td>${app.time}</td>
-      <td>${app.duration} min</td>
-      <td>${app.status}</td>
-      <td>${app.notes || ""}</td>
-      <td>
-        <button onclick="editAppointment(${i})">✏️</button>
-        <button onclick="deleteAppointment(${i})">🗑️</button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-// Check for overlapping appointments
-function hasConflict(newDate, newTime, newDuration, skipIndex=null) {
-  const newStart = new Date(`${newDate}T${newTime}`);
-  const newEnd = new Date(newStart.getTime() + newDuration*60000);
-
-  return appointments.some((app, idx) => {
-    if (idx === skipIndex) return false;
-    if (app.date !== newDate) return false;
-
-    const appStart = new Date(`${app.date}T${app.time}`);
-    const appEnd = new Date(appStart.getTime() + app.duration*60000);
-
-    return (newStart < appEnd) && (newEnd > appStart); // overlap condition
+  filtered.forEach((app) => {
+    appointmentsTableBody.innerHTML += `
+      <tr>
+        <td>${app.patientName}</td>
+        <td>${app.date}</td>
+        <td>${app.time}</td>
+        <td>${app.duration} min</td>
+        <td>${app.status}</td>
+        <td>${app.notes || ""}</td>
+        <td>
+          <button onclick="editAppointment('${app.key}')">✏️</button>
+          <button onclick="deleteAppointment('${app.key}')">🗑️</button>
+        </td>
+      </tr>
+    `;
   });
 }
 
-let editingIndex = null;
+// Check appointment conflict (excluding the appointment being edited)
+function hasConflict(newDate, newTime, newDuration, skipKey = null) {
+  const newStart = new Date(`${newDate}T${newTime}`);
+  const newEnd = new Date(newStart.getTime() + newDuration * 60000);
 
-appointmentForm.addEventListener("submit", e => {
+  return Object.entries(appointments).some(([key, app]) => {
+    if (key === skipKey) return false;
+    if (app.date !== newDate) return false;
+
+    const appStart = new Date(`${app.date}T${app.time}`);
+    const appEnd = new Date(appStart.getTime() + app.duration * 60000);
+
+    return (newStart < appEnd) && (newEnd > appStart);
+  });
+}
+
+appointmentForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
   const enteredName = patientNameInput.value.trim();
-if (!enteredName) return alert("Enter the patient's name.");
+  if (!enteredName) return alert("Enter the patient's name.");
 
-// Optional: try to find patient by exact name match (case-insensitive)
-const patient = patients.find(p => p.name.toLowerCase() === enteredName.toLowerCase());
-
-if (!patient) {
-  // You can either allow new name or alert here
-  // For example, allow unknown patient names:
-  // alert("Patient not found in records.");
-  // return;
-}
+  // Optionally check patients list for exact match
+  // const patient = Object.values(patients).find(p => p.name.toLowerCase() === enteredName.toLowerCase());
 
   const date = document.getElementById("appointmentDate").value;
   const time = document.getElementById("appointmentTime").value;
@@ -91,33 +103,32 @@ if (!patient) {
 
   const appointmentData = {
     patientName: enteredName,
-    patientId: patient ? patient.phone : null,  // optional, if you want to keep id
+    // patientId: patient ? patient.phone : null,  // optional if you want to add it later
     date,
     time,
     duration,
     status,
     notes
   };
-  
 
-  if (editingIndex !== null) {
-    appointments[editingIndex] = appointmentData;
-    alert("Appointment updated.");
-  } else {
-    appointments.push(appointmentData);
-    alert("Appointment added.");
-  }
-
-  saveAppointments();
-  renderAppointments(viewDateInput.value || date);
-  appointmentForm.reset();
-  editingIndex = null;
-  appointmentForm.querySelector("button").textContent = "Add Appointment";
+  saveAppointmentData(appointmentData)
+    .then(() => {
+      alert(editingIndex ? "Appointment updated." : "Appointment added.");
+      appointmentForm.reset();
+      editingIndex = null;
+      appointmentForm.querySelector("button").textContent = "Add Appointment";
+    })
+    .catch(err => {
+      alert("Error saving appointment: " + err.message);
+    });
 });
 
-window.editAppointment = function(index) {
-  editingIndex = index;
-  const app = appointments[index];
+// Edit appointment: fill form with data
+window.editAppointment = function(key) {
+  editingIndex = key;
+  const app = appointments[key];
+  if (!app) return alert("Appointment data not found.");
+
   patientNameInput.value = app.patientName;
   document.getElementById("appointmentDate").value = app.date;
   document.getElementById("appointmentTime").value = app.time;
@@ -127,21 +138,24 @@ window.editAppointment = function(index) {
   appointmentForm.querySelector("button").textContent = "Update Appointment";
 };
 
-window.deleteAppointment = function(index) {
+// Delete appointment by key
+window.deleteAppointment = function(key) {
   if (confirm("Delete this appointment?")) {
-    appointments.splice(index, 1);
-    saveAppointments();
-    renderAppointments();
+    appointmentsRef.child(key).remove();
   }
 };
 
-viewDateInput.addEventListener("change", () => {
-  renderAppointments();
+// Listen for realtime changes
+appointmentsRef.on("value", (snapshot) => {
+  appointments = snapshot.val() || {};
+  renderAppointments(viewDateInput.value || null);
 });
 
-// Initialize
-populatePatientDropdown();
-viewDateInput.value = new Date().toISOString().slice(0,10);
+// Filter appointments by date
+viewDateInput.addEventListener("change", () => {
+  renderAppointments(viewDateInput.value);
+});
 
-
-renderAppointments();  // no date filter, shows all
+// Initialize viewDate to today
+viewDateInput.value = new Date().toISOString().slice(0, 10);
+renderAppointments();

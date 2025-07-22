@@ -3,6 +3,7 @@
 const firebaseConfig = {
   apiKey: "AIzaSyAGOe-Ug2Qqbzmz1ahgR_EYSaboJZL4q4k",
   authDomain: "tmdental-e1f29.firebaseapp.com",
+  databaseURL: "https://tmdental-e1f29-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "tmdental-e1f29",
   storageBucket: "tmdental-e1f29.appspot.com",
   messagingSenderId: "1052208338704",

@@ -31,30 +31,17 @@
       </form>
 
       <table id="supplyTable">
-        <thead>
-          <tr>
-            <th>Supply</th>
-            <th>Quantity</th>
-            <th>Unit Price</th>
-            <th>Total</th>
-            <th>Action</th>
-          </tr>
-        </thead>
         <tbody>
           <!-- Supplies will go here -->
         </tbody>
       </table>
     </div>
   </div>
-
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="assets/js/firebase.js"></script>
   <script src="assets/js/medical.js"></script>
-  <!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js"></script>
-
-<!-- Your firebase config -->
-<script src="assets/js/firebase.js"></script>
-
+  
   <script>
     if (localStorage.getItem("loggedIn") !== "true") {
       window.location.href = "login.html";

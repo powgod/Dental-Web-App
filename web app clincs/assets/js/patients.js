@@ -1,3 +1,10 @@
+// Make sure firebase is initialized and these imports (compat) are in your html
+// <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+// <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+const db = firebase.database();
+const patientRef = db.ref('patients');
+
 const patientForm = document.getElementById("patientForm");
 const patientName = document.getElementById("patientName");
 const patientPhone = document.getElementById("patientPhone");
@@ -11,18 +18,16 @@ const patientAdvance = document.getElementById("patientAdvance");
 const patientDate = document.getElementById("patientDate");
 const patientTable = document.querySelector("#patientTable tbody");
 
-let patients = JSON.parse(localStorage.getItem("patients")) || [];
-let editingIndex = null;
+let patients = {}; // will hold patients from Firebase as an object
+let editingKey = null;
 
-function savePatients() {
-  localStorage.setItem("patients", JSON.stringify(patients));
-}
-
+// Render patients table from Firebase data
 function renderPatients() {
   patientTable.innerHTML = "";
-  patients.forEach((p, index) => {
-    const row = document.createElement("tr");
+  for (const key in patients) {
+    const p = patients[key];
     const remaining = (p.price || 0) - (p.advance || 0);
+    const row = document.createElement("tr");
 
     row.innerHTML = `
       <td>${p.name}</td>
@@ -37,15 +42,16 @@ function renderPatients() {
       <td>${remaining}</td>
       <td>${p.date || ""}</td>
       <td>
-        <button onclick="openEditModal(${index})">✏️</button>
-        <button onclick="deletePatient(${index})">🗑️</button>
+        <button onclick="openEditModal('${key}')">✏️</button>
+        <button onclick="deletePatient('${key}')">🗑️</button>
       </td>
     `;
     patientTable.appendChild(row);
-  });
+  }
 }
 
-patientForm.addEventListener("submit", function (e) {
+// Add new patient to Firebase
+patientForm.addEventListener("submit", function(e) {
   e.preventDefault();
 
   const patient = {
@@ -65,44 +71,43 @@ patientForm.addEventListener("submit", function (e) {
     }]
   };
 
-  patients.push(patient);
-  savePatients();
-  renderPatients();
-  patientForm.reset();
+  patientRef.push(patient)
+    .then(() => {
+      patientForm.reset();
+    })
+    .catch(error => {
+      alert("Error adding patient: " + error.message);
+    });
 });
 
-function deletePatient(index) {
-  if (confirm("Are you sure?")) {
-    patients.splice(index, 1);
-    savePatients();
-    renderPatients();
+// Delete patient from Firebase
+window.deletePatient = function(key) {
+  if (confirm("Are you sure you want to delete this patient?")) {
+    patientRef.child(key).remove();
   }
-}
+};
 
-// ---------- Edit Modal Logic ----------
-
-function openEditModal(index) {
-  editingIndex = index;
-  const p = patients[index];
+// Open edit modal and fill inputs
+window.openEditModal = function(key) {
+  editingKey = key;
+  const p = patients[key];
   document.getElementById("editName").value = p.name;
   document.getElementById("editPhone").value = p.phone;
   document.getElementById("editStatus").value = p.status;
   document.getElementById("editAdvance").value = "";
-  const modal = document.getElementById("editModal");
-  modal.classList.add("show");
-  modal.style.display = "flex";
-  
-  renderHistory(p.history || []);
-}
+  document.getElementById("editModal").style.display = "flex";
 
+  renderHistory(p.history || []);
+};
+
+// Render payment history in the modal
 function renderHistory(history) {
   const historyList = document.getElementById("historyList");
   historyList.innerHTML = "";
-  if (!history || history.length === 0) {
+  if (history.length === 0) {
     historyList.innerHTML = "<li>No payment history</li>";
     return;
   }
-
   history.forEach(entry => {
     const li = document.createElement("li");
     li.textContent = `${entry.date}: ${entry.amount} MAD`;
@@ -110,8 +115,11 @@ function renderHistory(history) {
   });
 }
 
-function saveEdit() {
-  const p = patients[editingIndex];
+// Save edited patient data to Firebase
+window.saveEdit = function() {
+  if (!editingKey) return;
+
+  const p = patients[editingKey];
   const newAdvance = parseFloat(document.getElementById("editAdvance").value) || 0;
 
   if (newAdvance > 0) {
@@ -124,14 +132,22 @@ function saveEdit() {
   p.phone = document.getElementById("editPhone").value;
   p.status = document.getElementById("editStatus").value;
 
-  savePatients();
+  patientRef.child(editingKey).set(p)
+    .then(() => {
+      document.getElementById("editModal").style.display = "none";
+    })
+    .catch(error => {
+      alert("Error saving changes: " + error.message);
+    });
+};
+
+// Close edit modal
+window.closeModal = function() {
+  document.getElementById("editModal").style.display = "none";
+};
+
+// Listen for changes in Firebase patients node, realtime sync
+patientRef.on("value", snapshot => {
+  patients = snapshot.val() || {};
   renderPatients();
-  document.getElementById("editModal").style.display = "none";
-}
-
-function closeModal() {
-  document.getElementById("editModal").style.display = "none";
-}
-
-// Initialize
-renderPatients();
+});

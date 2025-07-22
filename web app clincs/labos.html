@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Manage Lab Work</title>
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css" />
 </head>
 <body>
   <div class="container">
@@ -17,65 +17,93 @@
       <a href="medical.html" class="menu-link">Medical Supplies</a>
       <a href="appointments.html" class="menu-link">Appointments</a>
       <a href="chatbot.html" class="menu-link">AI Chatbot</a>
-
     </div>
+
     <div class="content">
       <h1>Lab Work</h1>
+      
+      <!-- Add Labo Form -->
       <form id="laboForm">
         <input type="text" id="laboName" placeholder="Name" required />
-        <input type="number" id="laboPrice" placeholder="Price" required />
+        <input type="number" id="laboPrice" placeholder="Price" min="0" step="0.01" required />
         <input type="date" id="laboDate" required />
         <select id="laboStatus" required>
-          <option disabled selected>Status</option>
-          <option>Working</option>
-          <option>Delivered</option>
+          <option value="" disabled selected>Status</option>
+          <option value="Working">Working</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Pending">Pending</option>
+          <option value="Completed">Completed</option>
+          <option value="Sent">Sent</option>
         </select>
         <input type="date" id="laboSendDate" placeholder="Date Sent" required />
         <input type="text" id="laboNote" placeholder="Note" />
         <button type="submit">Add Labo</button>
       </form>
+
       <table id="laboTable">
-        <thead><tr><th>Name</th><th>Price</th><th>Date</th><th>Status</th><th>Send Date</th><th>Note</th><th>Actions</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Price</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Send Date</th>
+            <th>Note</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
         <tbody></tbody>
       </table>
     </div>
   </div>
-  <!-- Labo Edit Modal -->
-<div id="laboModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <span id="laboModalClose" class="close">&times;</span>
-    <form id="laboForm">
-      <input type="text" id="laboName" placeholder="Patient Name" required />
-      <input type="number" id="laboPrice" placeholder="Cost" required min="0" step="0.01" />
-      <input type="date" id="laboDate" required />
-      <select id="laboStatus" required>
-        <option value="">Select Status</option>
-        <option value="Pending">Pending</option>
-        <option value="Completed">Completed</option>
-        <option value="Sent">Sent</option>
-      </select>
-      <input type="date" id="laboSendDate" required />
-      <textarea id="laboNote" placeholder="Notes"></textarea>
-      <button type="submit">Add Labo</button>
-    </form>
+
+  <!-- Edit Labo Modal -->
+  <div id="laboModal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span id="laboModalClose" class="close" style="cursor:pointer; float:right;">&times;</span>
+      <h2>Edit Labo</h2>
+      <form id="laboEditForm">
+        <input type="text" id="editLaboName" placeholder="Name" required />
+        <input type="number" id="editLaboPrice" placeholder="Price" min="0" step="0.01" required />
+        <input type="date" id="editLaboDate" required />
+        <select id="editLaboStatus" required>
+          <option value="" disabled selected>Select Status</option>
+          <option value="Working">Working</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Pending">Pending</option>
+          <option value="Completed">Completed</option>
+          <option value="Sent">Sent</option>
+        </select>
+        <input type="date" id="editLaboSendDate" required />
+        <input type="text" id="editLaboNote" placeholder="Note" />
+        <button type="submit">Save Changes</button>
+      </form>
+    </div>
   </div>
-</div>
 
-  
-  <script src="assets/js/common.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script src="assets/js/firebase.js"></script>
   <script src="assets/js/labos.js"></script>
-  <!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js"></script>
-
-<!-- Your firebase config -->
-<script src="assets/js/firebase.js"></script>
 
   <script>
     if (localStorage.getItem("loggedIn") !== "true") {
       window.location.href = "login.html";
     }
+
+    // Modal open/close handlers (you can also put these in labos.js)
+    const laboModal = document.getElementById("laboModal");
+    const laboModalClose = document.getElementById("laboModalClose");
+
+    laboModalClose.addEventListener("click", () => {
+      laboModal.style.display = "none";
+    });
+
+    window.onclick = function(event) {
+      if (event.target === laboModal) {
+        laboModal.style.display = "none";
+      }
+    };
   </script>
-  
 </body>
 </html>

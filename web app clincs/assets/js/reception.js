@@ -1,45 +1,53 @@
-function updateClock() {
-  const now = new Date();
-  const timeString = now.toLocaleTimeString();
-  document.getElementById("currentTime").textContent = timeString;
-}
-setInterval(updateClock, 1000);
-updateClock();
+// reception.js
+
+const db = firebase.database();
+const waitingRef = db.ref("waitingList");
 
 const nameInput = document.getElementById("patientwaitingName");
 const phoneInput = document.getElementById("patientwaitingPhone");
 const workInput = document.getElementById("patientwaitingwork");
 const waitingTable = document.getElementById("waitingTable");
 
-// Load patients or initialize empty array
-let waitingPatients = JSON.parse(localStorage.getItem("waitingList")) || [];
+let waitingPatients = {};
+let editingKey = null;
 
-function saveToStorage() {
-  localStorage.setItem("waitingList", JSON.stringify(waitingPatients));
+// Clock
+function updateClock() {
+  const now = new Date();
+  document.getElementById("currentTime").textContent = now.toLocaleTimeString();
 }
+setInterval(updateClock, 1000);
+updateClock();
 
+// Render patients from Firebase data snapshot
 function renderWaitingList() {
   waitingTable.innerHTML = `
-    <tr><th>Name</th><th>Phone</th><th>Work</th><th>Actions</th></tr>
-    ${waitingPatients.map((p, i) => `
-      <tr>
-        <td>${p.name}</td>
-        <td>${p.phone}</td>
-        <td>${p.work}</td>
-        <td>
-          <button onclick="removePatient(${i})" class="delete-btn">🗑️</button>
-        </td>
-      </tr>
-    `).join("")}
-  `;
+    <tr>
+      <th>Name</th><th>Phone</th><th>Work</th><th>Actions</th>
+    </tr>`;
+
+  Object.entries(waitingPatients).forEach(([key, patient]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${patient.name}</td>
+      <td>${patient.phone}</td>
+      <td>${patient.work}</td>
+      <td>
+        <button onclick="removePatient('${key}')" class="delete-btn">🗑️</button>
+      </td>
+    `;
+    waitingTable.appendChild(tr);
+  });
 }
 
-function removePatient(index) {
-  waitingPatients.splice(index, 1);
-  saveToStorage();
-  renderWaitingList();
-}
+// Remove patient from Firebase
+window.removePatient = async function(key) {
+  if (confirm("Are you sure you want to remove this patient?")) {
+    await waitingRef.child(key).remove();
+  }
+};
 
+// Add patient to Firebase
 function addPatient() {
   const name = nameInput.value.trim();
   const phone = phoneInput.value.trim();
@@ -47,19 +55,21 @@ function addPatient() {
   if (!name || !phone || !work) return;
 
   const newPatient = { name, phone, work };
-  waitingPatients.push(newPatient);
-  saveToStorage();
-  renderWaitingList();
-
-  // Clear inputs
-  nameInput.value = "";
-  phoneInput.value = "";
-  workInput.value = "";
+  waitingRef.push(newPatient).then(() => {
+    nameInput.value = "";
+    phoneInput.value = "";
+    workInput.value = "";
+  });
 }
 
-// Add event listener to "Enter" on last input
+// Add event listener for "Enter" on last input
 workInput.addEventListener("keydown", e => {
   if (e.key === "Enter") addPatient();
 });
 
-renderWaitingList();
+// Listen to Firebase waitingList changes in realtime
+waitingRef.on("value", snapshot => {
+  waitingPatients = snapshot.val() || {};
+  renderWaitingList();
+});
+
