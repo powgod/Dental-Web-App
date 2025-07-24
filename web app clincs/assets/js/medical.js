@@ -1,7 +1,14 @@
 // medical.js
 
+
+const uid = localStorage.getItem("uid");
+if (!uid) {
+  alert("User not logged in");
+  window.location.href = "login.html"; // or redirect to login
+}
+
 const db = firebase.database();
-const suppliesRef = db.ref("medicalSupplies");
+const suppliesRef = db.ref('medicalSupplies/' + uid);
 
 const supplyForm = document.getElementById("supplyForm");
 const supplyNameInput = document.getElementById("supplyName");
@@ -66,4 +73,19 @@ supplyForm.addEventListener("submit", (e) => {
 suppliesRef.on("value", (snapshot) => {
   supplies = snapshot.val() || {};
   renderSupplies();
+});
+
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const uid = user.uid;
+    localStorage.setItem("uid", uid); // optional
+    const db = firebase.database();
+    const suppliesRef = db.ref('medicalSupplies/' + uid);
+
+    // ⬇️ Put all your app logic here (form, events, listeners, etc.)
+
+  } else {
+    // Not logged in → redirect
+    window.location.href = "login.html";
+  }
 });

@@ -1,7 +1,12 @@
 // expenses.js
+const uid = localStorage.getItem("uid");
+if (!uid) {
+  alert("User not logged in");
+  window.location.href = "login.html"; // or redirect to login
+}
 
 const db = firebase.database();
-const expensesRef = db.ref("fixedExpenses");
+const expensesRef = db.ref('fixedExpenses/' + uid);
 
 const expenseForm = document.getElementById("expenseForm");
 const expenseNameInput = document.getElementById("expenseName");
@@ -59,4 +64,19 @@ expenseForm.addEventListener("submit", (e) => {
 expensesRef.on("value", (snapshot) => {
   expenses = snapshot.val() || {};
   renderExpenses();
+});
+
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const uid = user.uid;
+    localStorage.setItem("uid", uid); // optional
+    const db = firebase.database();
+    const expensesRef = db.ref('fixedExpenses/' + uid);
+
+    // ⬇️ Put all your app logic here (form, events, listeners, etc.)
+
+  } else {
+    // Not logged in → redirect
+    window.location.href = "login.html";
+  }
 });

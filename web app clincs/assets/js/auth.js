@@ -7,8 +7,10 @@ document.getElementById("loginForm").addEventListener("submit", function (e) {
   const errorMsg = document.getElementById("errorMsg");
 
   firebase.auth().signInWithEmailAndPassword(email, password)
-    .then(() => {
+    .then((userCredential) => {
+      const user = userCredential.user;
       localStorage.setItem("loggedIn", "true");
+      localStorage.setItem("uid", user.uid); // ✅ store UID
       window.location.href = "index.html"; // redirect after login
     })
     .catch((error) => {

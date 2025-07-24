@@ -1,6 +1,26 @@
+// assets/js/chatbot.js
+
+
+const uid = localStorage.getItem("uid");
+if (!uid) {
+  alert("User not logged in");
+  window.location.href = "login.html"; // or redirect to login
+}
+
 const chatContainer = document.getElementById("chatContainer");
 const userInput = document.getElementById("userInput");
+userInput.addEventListener("keypress", function (e) {
+  if (e.key === "Enter") {
+    sendMessage();
+  }
+});
 
+
+// Get current user UID
+const db = firebase.database();
+const userChatRef = firebase.database().ref("chats/" + uid);
+
+// Append a message to the chat box
 function appendMessage(content, type) {
   const msg = document.createElement("div");
   msg.classList.add("message", type);
@@ -9,24 +29,36 @@ function appendMessage(content, type) {
   chatContainer.scrollTop = chatContainer.scrollHeight;
 }
 
+// Load previous messages from Firebase
+userChatRef.on("child_added", (snapshot) => {
+  const message = snapshot.val();
+  appendMessage(message.content, message.role === "user" ? "user" : "bot");
+});
+
+// Send message to API and save it to Firebase
 async function sendMessage() {
   const input = userInput.value.trim();
   if (!input) return;
 
-  appendMessage(input, "user");
   userInput.value = "";
 
-  appendMessage("⏳ Thinking...", "bot");
+  // Save user message to Firebase
+  userChatRef.push({
+    role: "user",
+    content: input,
+    timestamp: Date.now()
+  });
+
 
   try {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": ""
+        "Authorization": "Bearer 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"
       },
       body: JSON.stringify({
-        model: "gpt-4o", // or "gpt-3.5-turbo"
+        model: "openai/gpt-3.5-turbo",
         messages: [
           { role: "system", content: "You are a helpful dental assistant." },
           { role: "user", content: input }
@@ -36,16 +68,36 @@ async function sendMessage() {
 
     const data = await response.json();
 
-    // Check if OpenAI returned an error
     if (data.error) {
       appendMessage("❌ Error: " + data.error.message, "bot");
       return;
     }
 
     const reply = data.choices[0].message.content.trim();
-    appendMessage(reply, "bot");
+
+    // Save bot reply to Firebase
+    userChatRef.push({
+      role: "bot",
+      content: reply,
+      timestamp: Date.now()
+    });
+
   } catch (err) {
     appendMessage("❌ No response from AI: " + err.message, "bot");
     console.error(err);
   }
 }
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const uid = user.uid;
+    localStorage.setItem("uid", uid); // optional
+    const db = firebase.database();
+    const userChatRef = firebase.database().ref("chats/" + uid);
+
+    // ⬇️ Put all your app logic here (form, events, listeners, etc.)
+
+  } else {
+    // Not logged in → redirect
+    window.location.href = "login.html";
+  }
+});

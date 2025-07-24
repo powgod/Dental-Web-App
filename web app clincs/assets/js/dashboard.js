@@ -1,10 +1,22 @@
+// Get UID of current user
+firebase.auth().onAuthStateChanged(user => {
+  if (!user) {
+    // Not logged in
+    alert("Please log in first");
+    window.location.href = "login.html";
+    return;
+  }
+
+  const uid = user.uid;
+
 const db = firebase.database();
 
-const patientsRef = db.ref("patients");
-const receptionRef = db.ref("waitingList");
-const expensesRef = db.ref("fixedExpenses");
-const suppliesRef = db.ref("medicalSupplies");
-const labosRef = db.ref("labos");
+const patientsRef = db.ref('patients/' + uid);
+const receptionRef = db.ref('waitingList/' + uid);
+const expensesRef = db.ref('fixedExpenses/' + uid);
+const suppliesRef = db.ref('medicalSupplies/' + uid);
+const labosRef = db.ref('labos/' + uid);
+
 
 function updateDashboard(patientsData, receptionData) {
   const patients = patientsData ? Object.values(patientsData) : [];
@@ -182,23 +194,28 @@ patientsRef.on("value", patientsSnap => {
   const patientsData = patientsSnap.val();
   receptionRef.once("value", receptionSnap => {
     const receptionData = receptionSnap.val();
+
     updateDashboard(patientsData, receptionData);
     updateTotalAdvance(patientsData);
     updateTotalPrice(patientsData);
-    // you can call other patient-related update functions here if needed
   });
+
   expensesRef.once("value", expensesSnap => {
     const expensesData = expensesSnap.val();
     updateMonthlyExpense(expensesData);
   });
+
   suppliesRef.once("value", suppliesSnap => {
     const suppliesData = suppliesSnap.val();
     updateMedicalInventoryCost(suppliesData);
   });
+
   labosRef.once("value", labosSnap => {
     const labosData = labosSnap.val();
     updateMonthlyLaboExpense(labosData);
     updateLaboWorkLeft(labosData);
     updateFinancialSummary(patientsData, suppliesData, expensesData, labosData);
   });
+});
+// At the very end of your code, add these two lines:
 });

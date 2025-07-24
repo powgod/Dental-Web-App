@@ -1,9 +1,13 @@
-// Make sure firebase is initialized and these imports (compat) are in your html
-// <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-// <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+// Get UID of current user
+const uid = localStorage.getItem("uid");
+if (!uid) {
+  alert("User not logged in");
+  window.location.href = "login.html"; // or redirect to login
+}
 
+// Reference only the logged-in user's patients
 const db = firebase.database();
-const patientRef = db.ref('patients');
+const patientRef = db.ref('patients/' + uid); // ✅ scoped to this user
 
 const patientForm = document.getElementById("patientForm");
 const patientName = document.getElementById("patientName");
@@ -21,7 +25,6 @@ const patientTable = document.querySelector("#patientTable tbody");
 let patients = {}; // will hold patients from Firebase as an object
 let editingKey = null;
 
-// Render patients table from Firebase data
 function renderPatients() {
   patientTable.innerHTML = "";
   for (const key in patients) {
@@ -50,7 +53,7 @@ function renderPatients() {
   }
 }
 
-// Add new patient to Firebase
+// Add new patient
 patientForm.addEventListener("submit", function(e) {
   e.preventDefault();
 
@@ -80,14 +83,14 @@ patientForm.addEventListener("submit", function(e) {
     });
 });
 
-// Delete patient from Firebase
+// Delete patient
 window.deletePatient = function(key) {
   if (confirm("Are you sure you want to delete this patient?")) {
     patientRef.child(key).remove();
   }
 };
 
-// Open edit modal and fill inputs
+// Edit patient
 window.openEditModal = function(key) {
   editingKey = key;
   const p = patients[key];
@@ -100,7 +103,6 @@ window.openEditModal = function(key) {
   renderHistory(p.history || []);
 };
 
-// Render payment history in the modal
 function renderHistory(history) {
   const historyList = document.getElementById("historyList");
   historyList.innerHTML = "";
@@ -115,7 +117,7 @@ function renderHistory(history) {
   });
 }
 
-// Save edited patient data to Firebase
+// Save edited patient data
 window.saveEdit = function() {
   if (!editingKey) return;
 
@@ -141,13 +143,26 @@ window.saveEdit = function() {
     });
 };
 
-// Close edit modal
 window.closeModal = function() {
   document.getElementById("editModal").style.display = "none";
 };
 
-// Listen for changes in Firebase patients node, realtime sync
+// Firebase realtime listener
 patientRef.on("value", snapshot => {
   patients = snapshot.val() || {};
   renderPatients();
+});
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const uid = user.uid;
+    localStorage.setItem("uid", uid); // optional
+    const db = firebase.database();
+    const patientRef = db.ref('patients/' + uid);
+
+    // ⬇️ Put all your app logic here (form, events, listeners, etc.)
+
+  } else {
+    // Not logged in → redirect
+    window.location.href = "login.html";
+  }
 });

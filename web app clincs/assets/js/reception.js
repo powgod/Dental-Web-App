@@ -1,7 +1,12 @@
 // reception.js
+const uid = localStorage.getItem("uid");
+if (!uid) {
+  alert("User not logged in");
+  window.location.href = "login.html"; // or redirect to login
+}
 
 const db = firebase.database();
-const waitingRef = db.ref("waitingList");
+const waitingRef = db.ref('waitingList/' + uid);
 
 const nameInput = document.getElementById("patientwaitingName");
 const phoneInput = document.getElementById("patientwaitingPhone");
@@ -73,3 +78,17 @@ waitingRef.on("value", snapshot => {
   renderWaitingList();
 });
 
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const uid = user.uid;
+    localStorage.setItem("uid", uid); // optional
+    const db = firebase.database();
+    const waitingRef = db.ref('waitingList/' + uid);
+
+    // ⬇️ Put all your app logic here (form, events, listeners, etc.)
+
+  } else {
+    // Not logged in → redirect
+    window.location.href = "login.html";
+  }
+});

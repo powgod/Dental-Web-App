@@ -1,5 +1,12 @@
+
+const uid = localStorage.getItem("uid");
+if (!uid) {
+  alert("User not logged in");
+  window.location.href = "login.html"; // or redirect to login
+}
+
 const db = firebase.database();
-const labosRef = db.ref('labos');
+const labosRef = db.ref('labos/' + uid);
 
 const laboForm = document.getElementById("laboForm");
 const laboTableBody = document.querySelector("#laboTable tbody");
@@ -117,5 +124,20 @@ labosRef.on('value', (snapshot) => {
   labos = snapshot.val() || {};
   renderLabos();
   updateDashboard(); // update dashboard when labos change
+});
+
+firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const uid = user.uid;
+    localStorage.setItem("uid", uid); // optional
+    const db = firebase.database();
+    const labosRef = db.ref('labos/' + uid);
+
+    // ⬇️ Put all your app logic here (form, events, listeners, etc.)
+
+  } else {
+    // Not logged in → redirect
+    window.location.href = "login.html";
+  }
 });
 
