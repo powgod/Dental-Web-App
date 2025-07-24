@@ -65,6 +65,18 @@ expensesRef.on("value", (snapshot) => {
   expenses = snapshot.val() || {};
   renderExpenses();
 });
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    firebase.auth().signOut().then(() => {
+      window.location.href = "login.html"; // Adjust if your login page has a different name
+    }).catch((error) => {
+      console.error("Logout failed:", error);
+    });
+  });
+}
+
 
 firebase.auth().onAuthStateChanged(user => {
   if (user) {

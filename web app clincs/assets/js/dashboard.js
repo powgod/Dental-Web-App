@@ -189,6 +189,18 @@ function updateFinancialSummary(patientsData, suppliesData, expensesData, labosD
   }
 }
 
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    firebase.auth().signOut().then(() => {
+      window.location.href = "login.html"; // Adjust if your login page has a different name
+    }).catch((error) => {
+      console.error("Logout failed:", error);
+    });
+  });
+}
+
 // Setup realtime listeners for all relevant data nodes
 patientsRef.on("value", patientsSnap => {
   const patientsData = patientsSnap.val();

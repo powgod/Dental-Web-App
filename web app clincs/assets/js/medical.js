@@ -68,6 +68,17 @@ supplyForm.addEventListener("submit", (e) => {
     supplyForm.reset();
   });
 });
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    firebase.auth().signOut().then(() => {
+      window.location.href = "login.html"; // Adjust if your login page has a different name
+    }).catch((error) => {
+      console.error("Logout failed:", error);
+    });
+  });
+}
 
 // Listen for realtime Firebase updates
 suppliesRef.on("value", (snapshot) => {

@@ -113,6 +113,18 @@ if (!uid) {
         alert("Error saving appointment: " + err.message);
       });
   });
+  const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    firebase.auth().signOut().then(() => {
+      window.location.href = "login.html"; // Adjust if your login page has a different name
+    }).catch((error) => {
+      console.error("Logout failed:", error);
+    });
+  });
+}
+
 
   window.editAppointment = function(key) {
     editingIndex = key;
