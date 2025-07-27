@@ -3,7 +3,7 @@ firebase.auth().onAuthStateChanged(user => {
   if (!user) {
     // Not logged in
     alert("Please log in first");
-    window.location.href = "login.html";
+    window.location.href = "index.html";
     return;
   }
 
@@ -194,7 +194,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
     firebase.auth().signOut().then(() => {
-      window.location.href = "login.html"; // Adjust if your login page has a different name
+      window.location.href = "index.html"; // Adjust if your login page has a different name
     }).catch((error) => {
       console.error("Logout failed:", error);
     });

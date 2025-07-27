@@ -11,7 +11,7 @@ document.getElementById("loginForm").addEventListener("submit", function (e) {
       const user = userCredential.user;
       localStorage.setItem("loggedIn", "true");
       localStorage.setItem("uid", user.uid); // ✅ store UID
-      window.location.href = "index.html"; // redirect after login
+      window.location.href = "dashboard.html"; // redirect after login
     })
     .catch((error) => {
       errorMsg.textContent = "❌ " + error.message;

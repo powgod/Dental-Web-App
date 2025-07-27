@@ -2,7 +2,7 @@
 const uid = localStorage.getItem("uid");
 if (!uid) {
   alert("User not logged in");
-  window.location.href = "login.html"; // or redirect to login
+  window.location.href = "index.html"; // or redirect to login
 }
 
 const db = firebase.database();
@@ -82,7 +82,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
     firebase.auth().signOut().then(() => {
-      window.location.href = "login.html"; // Adjust if your login page has a different name
+      window.location.href = "index.html"; // Adjust if your login page has a different name
     }).catch((error) => {
       console.error("Logout failed:", error);
     });
@@ -100,6 +100,6 @@ firebase.auth().onAuthStateChanged(user => {
 
   } else {
     // Not logged in → redirect
-    window.location.href = "login.html";
+    window.location.href = "index.html";
   }
 });

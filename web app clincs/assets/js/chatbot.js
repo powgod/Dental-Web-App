@@ -4,7 +4,7 @@
 const uid = localStorage.getItem("uid");
 if (!uid) {
   alert("User not logged in");
-  window.location.href = "login.html"; // or redirect to login
+  window.location.href = "index.html"; // or redirect to login
 }
 
 const chatContainer = document.getElementById("chatContainer");
@@ -55,7 +55,7 @@ async function sendMessage() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer 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"
+        "Authorization": "Bearer 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"
       },
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",
@@ -93,7 +93,7 @@ const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
   logoutBtn.addEventListener("click", () => {
     firebase.auth().signOut().then(() => {
-      window.location.href = "login.html"; // Adjust if your login page has a different name
+      window.location.href = "index.html"; // Adjust if your login page has a different name
     }).catch((error) => {
       console.error("Logout failed:", error);
     });
@@ -111,6 +111,6 @@ firebase.auth().onAuthStateChanged(user => {
 
   } else {
     // Not logged in → redirect
-    window.location.href = "login.html";
+    window.location.href = "index.html";
   }
 });
