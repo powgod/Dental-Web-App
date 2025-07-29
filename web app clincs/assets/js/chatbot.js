@@ -55,7 +55,7 @@ async function sendMessage() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer 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"
+        "Authorization": "Bearer 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"
       },
       body: JSON.stringify({
         model: "openai/gpt-3.5-turbo",

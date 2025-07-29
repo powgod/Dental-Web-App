@@ -204,9 +204,9 @@ if (logoutBtn) {
 // Setup realtime listeners for all relevant data nodes
 patientsRef.on("value", patientsSnap => {
   const patientsData = patientsSnap.val();
+
   receptionRef.once("value", receptionSnap => {
     const receptionData = receptionSnap.val();
-
     updateDashboard(patientsData, receptionData);
     updateTotalAdvance(patientsData);
     updateTotalPrice(patientsData);
@@ -214,19 +214,21 @@ patientsRef.on("value", patientsSnap => {
 
   expensesRef.once("value", expensesSnap => {
     const expensesData = expensesSnap.val();
-    updateMonthlyExpense(expensesData);
-  });
 
-  suppliesRef.once("value", suppliesSnap => {
-    const suppliesData = suppliesSnap.val();
-    updateMedicalInventoryCost(suppliesData);
-  });
+    suppliesRef.once("value", suppliesSnap => {
+      const suppliesData = suppliesSnap.val();
 
-  labosRef.once("value", labosSnap => {
-    const labosData = labosSnap.val();
-    updateMonthlyLaboExpense(labosData);
-    updateLaboWorkLeft(labosData);
-    updateFinancialSummary(patientsData, suppliesData, expensesData, labosData);
+      labosRef.once("value", labosSnap => {
+        const labosData = labosSnap.val();
+
+        // ✅ Add this line to show profit and cash in hand
+        updateFinancialSummary(patientsData, suppliesData, expensesData, labosData);
+
+        updateMonthlyExpense(expensesData);
+        updateMedicalInventoryCost(suppliesData);
+        updateMonthlyLaboExpense(labosData);
+      });
+    });
   });
 });
 // At the very end of your code, add these two lines:
